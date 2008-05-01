@@ -5,7 +5,9 @@ The Stable Roommates algorithm (SR) is an extension of the Stable Marriage algor
 More succinctly:
 A matching M in an instance of SR is stable if there are no two participants x and y, each of whom prefers the other to his partner in M. Such a pair is said to block M, or to be a blocking pair with respect to M.
 
-There are different types of matches.  A super-stable match is one in which the end result has one, and only one, choice for each element 
+There are different types of matches.  A super-stable matching is one in which the end result has one, and only one, choice for each element.  A weakly-stable matching is one in which the end results has at least one element with more than one element in its preference list.
+
+It has been proved that finding the minimum or maximum weakly-stable matching is an NP-complete problem.
 
 = Ties and Incomplete Lists =
 
@@ -18,9 +20,7 @@ Also, sometimes an element prefers another element just as much as yet another o
 
 = Project Goal =
 
-The goal of this project is to create an implementation that meets the descriptions above in the Java programming language.  It will be written such that any class can be matched.  The user will also be able to specify if 
-
-
+The goal of this project is to create an implementation that meets the descriptions above in the Java programming language.  It will be written such that any class can be matched.  The user will also be able to specify if a stable matching needs to be returned, or if a weak matching is acceptable.
 
 = Program Use =
 
