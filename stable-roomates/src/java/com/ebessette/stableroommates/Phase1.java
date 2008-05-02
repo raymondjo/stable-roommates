@@ -3,7 +3,6 @@
  */
 package com.ebessette.stableroommates;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
@@ -11,7 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Phase 1 of the Stable Roommates algorithm
+ * Phase 1 of the Stable Roommates algorithm<br>
+ * Based heavily off of David Manlove's implementation
  * 
  * @author Eric <dev@ebessette.com>
  */
@@ -28,14 +28,9 @@ class Phase1<E> {
 	private List<Target<E>> targets;
 
 	/**
-	 * Players who can freely be matched
+	 * Stack of free targets
 	 */
 	private Stack<Target<E>> free;
-
-	/**
-	 * Should we skip over certain bits of Phase 1?
-	 */
-	boolean skipOver;
 
 	/**
 	 * Creates a new Phase 1
@@ -43,89 +38,123 @@ class Phase1<E> {
 	public Phase1( List<Target<E>> prefs ) {
 		this.targets = prefs;
 		this.free = new Stack<Target<E>>();
-		this.skipOver = false;
 
-		// Initialize the stack
-		this.free.addAll( this.targets );
+		this.free.addAll( targets );
 	}
 
 	/**
-	 * Do phase 1
+	 * Phase 1 of the Stable Roommates algorithm<br>
+	 * Implemented using the pseudo-code in Figure 1
 	 * 
-	 * @param addToDelStack
-	 * @param synchronise
-	 * @return
+	 * @return boolean indicating whether Phase 1 terminated due to an empty
+	 *         list or the proposal stack becoming empty
 	 */
 	public boolean applyPhase1() {
 
-		// If stack is not empty
-		while ( !this.free.isEmpty() ) {
+		Target<E> p = this.free.pop();
 
-			Target<E> tp = this.free.pop();
-			LOG.debug( "p: " + tp.getElement() );
+		// while some participant p has a non-empty list and p is not assigned
+		// to anyone loop
+		while ( p != null && !p.getPreferences().isEmpty() && !p.isAssigned() ) {
+			LOG.debug( "p: " + p );
 
-			// If a target's preferences are empty, then no solution can be
-			// found
-			if ( tp.getPreferences().isEmpty() ) {
-				return false;
-			}
+			// for each q at the head of p's list loop [that's tied]
+			List<Target<E>> headPrefs = p.getPreferences().getHeadList();
+			for ( Target<E> q : headPrefs ) {
+				LOG.debug( " q: " + q );
 
-			// q is p's first preference
-			Preference<E> pq = tp.getPreferences().getFirst();
-			Target<E> tq = pq.getTarget();
-
-			LOG.debug( "q:" + tq.getElement() );
-
-			// If worst proposal, then re-add to stack
-			if ( tq.hasProposal() ) {
-				if ( tq.getPreferences().findForTarget( tq.getProposal() ).getOrderNum() > tq.getPreferences()
-						.findForTarget( tp ).getOrderNum() ) {
-					this.free.push( tq.getProposal() );
-				}
-			}
-
-			// p proposes to q;
-			tq.propose( tp );
-
-			// Get the order num for p in q's list (should never be null)
-			Preference<E> tqpp = tq.getPreferences().findForTarget( tp );
-			int orderNumP = Integer.MAX_VALUE;
-			if ( tqpp != null ) {
-				orderNumP = tqpp.getOrderNum();
-			}
-
-			PreferenceList<E> tqp = new PreferenceList<E>( tq.getPreferences() );
-
-			// -- for each strict successor r of p in q's list loop
-			for ( Iterator<Preference<E>> pqpi = tqp.iterator(); pqpi.hasNext(); ) {
-
-				Preference<E> pr = pqpi.next();
-				Target<E> tr = pr.getTarget();
-
-				// Continue if r's order number is less than or equal to p's
-				// in q's list
-				if ( pr.getOrderNum() <= orderNumP ) {
+				Preference<E> pp_q = q.getPreferences().findForTarget( p );
+				// p HAS to be in q's preference list to be a possible match
+				if ( pp_q == null ) {
+					LOG.debug( " - p deletes q" );
+					p.delete( q );
 					continue;
 				}
 
-				LOG.debug( "r:" + tr.getElement() );
+				// assign p to q; -- p `proposes' to q
+				q.assign( p );
 
-				// -- if r is assigned to q then
-				if ( tq.getProposal().equals( pr.getTarget() ) ) {
-					// -- break the assignment
-					tq.propose( null );
-				} // -- end if
+				// for each strict successor r of p in q's list loop
+				for ( int i = 0; i < q.getPreferences().size(); i++ ) {
+					Preference<E> pr_q = q.getPreferences().get( i );
 
-				// -- delete the pair {q,r}
-				tq.delete( tr );
+					// Strict successor test
+					if ( pr_q.getOrderNum() <= pp_q.getOrderNum() ) {
+						continue;
+					}
 
-				// -- if r's list is empty then
-				if ( tr.getPreferences().isEmpty() ) {
-					// -- no super-stable matching exists
-					return false;
-				} // -- end if
-			} // -- end loop
-		} // -- end loop;
+					Target<E> r = pr_q.getTarget();
+					LOG.debug( "  r: " + r );
+
+					// if r is assigned to q then
+					if ( q.hasAssignment( r ) ) {
+						// break the assignment;
+						LOG.debug( "  - q deassigns r" );
+						q.deassign( r );
+						this.free.push( r );
+					} // end if;
+
+					// delete the pair {q, r};
+					LOG.debug( "  - q deletes r" );
+					q.delete( r );
+					i--;
+
+					// if r's list is empty then
+					if ( r.getPreferences().isEmpty() ) {
+						// no super-stable matching exists;
+						return false;
+					} // end if;
+				} // end loop;
+
+				// if >= 2 participants are assigned to q then
+				if ( q.hasMultipleAssignments() ) {
+					LOG.debug( " - q has multiple assignments" );
+
+					// break all assignments to q;
+					q.clearAssignments();
+
+					// for each r tied with p in q's list loop;
+					for ( int i = 0; i < q.getPreferences().size(); i++ ) {
+						Preference<E> pr_q = q.getPreferences().get( i );
+
+						// Only delete preferences of equal order number
+						if ( pr_q.getOrderNum() < pp_q.getOrderNum() ) {
+							continue;
+						}
+						else if ( pr_q.getOrderNum() < pp_q.getOrderNum() ) {
+							break;
+						}
+
+						Target<E> r = pr_q.getTarget();
+						LOG.debug( "  r: " + r );
+
+						// delete the pair {q, r};
+						LOG.debug( "  - q deletes r" );
+						q.delete( r );
+						i--;
+
+						// if r's list is empty then
+						if ( r.getPreferences().isEmpty() ) {
+							// no super-stable matching exists;
+							return false;
+						} // end if;
+					} // end loop;
+
+					// if q's list is empty then
+					if ( q.getPreferences().isEmpty() ) {
+						// no super-stable matching exists;
+						return false;
+					}// end if;
+				} // end if;
+			} // end loop;
+
+			if ( this.free.isEmpty() ) {
+				p = null;
+			}
+			else {
+				p = this.free.pop();
+			}
+		} // end loop;
 
 		return true;
 	}

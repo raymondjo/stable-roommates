@@ -3,8 +3,11 @@
  */
 package com.ebessette.stableroommates;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A Target's preference list
@@ -48,5 +51,39 @@ public class PreferenceList<E> extends LinkedList<Preference<E>> {
 		}
 
 		return p;
+	}
+
+	/**
+	 * Sort this list in the correct order
+	 */
+	public void sort() {
+		Collections.sort( this );
+	}
+
+	/**
+	 * Get a list of targets that are tied for first in this preference list<br>
+	 * The list should never be empty if used properly, but it WILL never be
+	 * null.
+	 * 
+	 * @return The list of targets tied for the head of the list
+	 */
+	public List<Target<E>> getHeadList() {
+
+		List<Target<E>> targets = new ArrayList<Target<E>>();
+
+		if ( this.isEmpty() ) {
+			return targets;
+		}
+
+		int firstOrderNum = this.getFirst().getOrderNum();
+		for ( Preference<E> p : this ) {
+			if ( p.getOrderNum() > firstOrderNum ) {
+				break;
+			}
+
+			targets.add( p.getTarget() );
+		}
+
+		return targets;
 	}
 }
