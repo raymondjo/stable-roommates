@@ -358,11 +358,6 @@ public class Person implements Cloneable {
 	 */
 	public void delete( int i, PersonArray pa, Phase1 whichPhase1, boolean addToDelStack, boolean synchronise,
 			BufferedWriter fo ) throws IOException {
-		// EAB - start
-		if ( i < 0 ) {
-			return;
-		}
-		// EAB - end
 
 		// Test to see if we are merely picking up where we left off when
 		// carrying
@@ -386,16 +381,13 @@ public class Person implements Cloneable {
 		// Loop until an entry has been deleted, or we have deleted all entries
 		while ( ( nextDel != 0 ) && ( !whichPhase1.SkipOver ) ) {
 			Person r = pa.getPerson( pref[nextDel].getEntry() );
-			// fo.print("Table "+Phase1.whichPhase1Instance+": {"+id+
-			// ", "+r.getID()+"} is deleted. End is "+end+
-			// ". NextDel is "+nextDel);
-			// Carry out corresponding deletions from other preference lists
-			// EAB - start
+			// MOD: Is this condition necessary?
 			if ( r == null ) {
-				nextDel = 0;
-				continue;
+				break;
 			}
-			// EAB - end
+			fo.write( "Table " + Phase1.whichPhase1Instance + ": {" + id + ", " + r.getID() + "} is deleted. End is "
+					+ end + ". NextDel is " + nextDel );
+			// Carry out corresponding deletions from other preference lists
 			r.deletePref( id, whichPhase1 );
 			nextDel = pref[nextDel].getSucc();
 			// fo.println(". NextDel is now "+nextDel);

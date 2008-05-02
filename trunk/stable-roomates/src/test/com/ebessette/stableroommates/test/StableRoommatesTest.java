@@ -27,7 +27,8 @@ public class StableRoommatesTest {
 	 * @throws InvalidPreferencesException
 	 * @throws NoStableMatchingException
 	 */
-	//DEBUG @Test
+	//@Ignore( "DEBUG phase 1 is working for this" )
+	@Test
 	public void superStableMatching() throws InvalidPreferencesException, NoStableMatchingException {
 
 		// Create preference list (data1.txt)
@@ -147,7 +148,8 @@ public class StableRoommatesTest {
 	 * @throws InvalidPreferencesException
 	 * @throws NoStableMatchingException
 	 */
-	//DEBUG @Test( expected = NoStableMatchingException.class )
+	@Ignore( "DEBUG phase 1 is working for this" )
+	@Test( expected = NoStableMatchingException.class )
 	public void noStableMatching() throws InvalidPreferencesException, NoStableMatchingException {
 
 		// Create preference list (data2.txt)
@@ -203,9 +205,9 @@ public class StableRoommatesTest {
 	 * @throws InvalidPreferencesException
 	 * @throws NoStableMatchingException
 	 */
+	@Ignore( "TODO Phase 1 doesn't match outcome from C program" )
 	@Test
-	@Ignore( "TODO Need to figure out how to detect an infinite loop" )
-	public void infiniteLoop() throws InvalidPreferencesException, NoStableMatchingException {
+	public void phase1Fails() throws InvalidPreferencesException, NoStableMatchingException {
 
 		// BUG Can this happen in a tournament? If so, how can I catch it?
 
@@ -323,6 +325,7 @@ public class StableRoommatesTest {
 	 * @throws InvalidPreferencesException
 	 * @throws NoStableMatchingException
 	 */
+	//@Ignore( "" )
 	@Test
 	public void singleDivRoundOne() throws InvalidPreferencesException, NoStableMatchingException {
 

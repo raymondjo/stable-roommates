@@ -7,7 +7,7 @@ package com.ebessette.stableroommates;
  * 
  * @author Eric <dev@ebessette.com>
  */
-public class Preference<E> {
+public class Preference<E> implements Comparable<Preference<E>> {
 
 	/**
 	 * The order number, 0 being the most preferred. Cannot be negative.
@@ -115,7 +115,7 @@ public class Preference<E> {
 		if ( getTarget() == null ) {
 			return super.hashCode();
 		}
-		
+
 		return getTarget().hashCode();
 	}
 
@@ -128,6 +128,20 @@ public class Preference<E> {
 	public String toString() {
 
 		return "Order Number = " + this.getOrderNum() + ": \n\t" + getTarget().toString();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	public int compareTo( Preference<E> p ) {
+
+		if ( p == null ) {
+			return 1;
+		}
+
+		return ( this.getOrderNum() - p.getOrderNum() );
 	}
 
 }
